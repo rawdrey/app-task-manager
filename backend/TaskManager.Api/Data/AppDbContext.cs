@@ -10,6 +10,6 @@ namespace TaskManager.Api.Data
         {
         }
 
-        public DbSet<Tarefa> Tarefas { get; set; }
+        public DbSet<TaskItem> Tasks { get; set; }
     }
 }

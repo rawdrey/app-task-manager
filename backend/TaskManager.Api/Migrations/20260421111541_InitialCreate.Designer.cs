@@ -12,7 +12,7 @@ using TaskManager.Api.Data;
 namespace TaskManager.Api.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260420213550_InitialCreate")]
+    [Migration("20260421111541_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -25,7 +25,7 @@ namespace TaskManager.Api.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("TaskManager.Api.Models.Tarefa", b =>
+            modelBuilder.Entity("TaskManager.Api.Models.TaskItem", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -33,10 +33,10 @@ namespace TaskManager.Api.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<DateTime>("DataCriacao")
+                    b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("Descricao")
+                    b.Property<string>("Description")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -44,13 +44,13 @@ namespace TaskManager.Api.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Titulo")
+                    b.Property<string>("Title")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
-                    b.ToTable("Tarefas");
+                    b.ToTable("Tasks");
                 });
 #pragma warning restore 612, 618
         }
