@@ -1,30 +1,28 @@
-<div class="min-h-screen bg-slate-100 p-8">
-  <div class="max-w-4xl mx-auto">
-
-    <h1 class="text-3xl font-bold text-blue-600 mb-6">
-      Gerenciador de Tarefas
-    </h1>
+<div class="min-h-screen bg-slate-100 px-4 py-8">
+  <main class="max-w-5xl mx-auto">
+    <header class="mb-8">
+      <h1 class="text-3xl font-bold text-slate-900">
+        Gerenciador de Tarefas
+      </h1>
+      <p class="text-slate-600 mt-2">
+        Cadastre, acompanhe, edite e conclua suas tarefas.
+      </p>
+    </header>
 
     @if (message) {
-      <div class="bg-green-100 text-green-700 p-3 rounded mb-4">
+      <div class="mb-6 rounded-lg bg-green-100 px-4 py-3 text-green-800">
         {{ message }}
       </div>
     }
 
-    @if (loading) {
-      <p class="mb-4 text-gray-600">
-        Carregando tarefas...
-      </p>
-    }
-
-    <div class="bg-white p-6 rounded-xl shadow-md mb-6">
-      <h2 class="text-xl font-semibold mb-4">
+    <section class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-6">
+      <h2 class="text-xl font-semibold text-slate-900 mb-4">
         Criar tarefa
       </h2>
 
-      <form (ngSubmit)="createTask()" class="space-y-4">
+      <form (ngSubmit)="createTask()" class="grid gap-4">
         <div>
-          <label for="title" class="block font-medium mb-1">
+          <label for="title" class="block text-sm font-medium text-slate-700 mb-1">
             Título
           </label>
           <input
@@ -33,12 +31,12 @@
             type="text"
             [(ngModel)]="newTask.title"
             placeholder="Digite o título da tarefa"
-            class="border rounded-lg px-3 py-2 w-full"
+            class="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
 
         <div>
-          <label for="description" class="block font-medium mb-1">
+          <label for="description" class="block text-sm font-medium text-slate-700 mb-1">
             Descrição
           </label>
           <textarea
@@ -46,40 +44,43 @@
             name="description"
             [(ngModel)]="newTask.description"
             placeholder="Digite a descrição da tarefa"
-            class="border rounded-lg px-3 py-2 w-full"
+            rows="3"
+            class="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
           ></textarea>
         </div>
 
         <div>
-          <label for="status" class="block font-medium mb-1">
-            Status
+          <label for="status" class="block text-sm font-medium text-slate-700 mb-1">
+            Status inicial
           </label>
           <select
             id="status"
             name="status"
             [(ngModel)]="newTask.status"
-            class="border rounded-lg px-3 py-2 w-full"
+            class="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value="Pending">Pendente</option>
             <option value="Completed">Concluída</option>
           </select>
         </div>
 
-        <button
-          type="submit"
-          class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
-        >
-          Criar tarefa
-        </button>
+        <div>
+          <button
+            type="submit"
+            class="rounded-lg bg-blue-600 px-5 py-2 font-medium text-white hover:bg-blue-700"
+          >
+            Criar tarefa
+          </button>
+        </div>
       </form>
-    </div>
+    </section>
 
-    <div class="bg-white p-6 rounded-xl shadow-md mb-6">
-      <h2 class="text-xl font-semibold mb-4">
+    <section class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-6">
+      <h2 class="text-xl font-semibold text-slate-900 mb-4">
         Buscar tarefa
       </h2>
 
-      <label for="search" class="block font-medium mb-1">
+      <label for="search" class="block text-sm font-medium text-slate-700 mb-1">
         Buscar por título
       </label>
       <input
@@ -88,51 +89,62 @@
         type="text"
         [(ngModel)]="searchTerm"
         placeholder="Digite parte do título"
-        class="border rounded-lg px-3 py-2 w-full"
+        class="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
       />
-    </div>
+    </section>
 
-    <div class="bg-white p-6 rounded-xl shadow-md">
-      <h2 class="text-xl font-semibold mb-4">
-        Lista de tarefas
-      </h2>
+    <section class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+      <div class="flex items-center justify-between gap-4 mb-4">
+        <h2 class="text-xl font-semibold text-slate-900">
+          Lista de tarefas
+        </h2>
 
-      @if (filteredTasks.length === 0) {
-        <p class="text-gray-500">
+        <span class="text-sm text-slate-500">
+          Total: {{ filteredTasks.length }}
+        </span>
+      </div>
+
+      @if (loading) {
+        <p class="text-slate-600">
+          Carregando tarefas...
+        </p>
+      }
+
+      @if (filteredTasks.length === 0 && !loading) {
+        <p class="rounded-lg bg-slate-50 p-4 text-slate-500">
           Nenhuma tarefa encontrada.
         </p>
       } @else {
-        <div class="space-y-4">
+        <div class="grid gap-4">
           @for (task of filteredTasks; track task.id) {
-            <div class="border rounded-lg p-4">
-
+            <article class="rounded-xl border border-slate-200 bg-slate-50 p-4">
               @if (editingTaskId === task.id) {
-                <div class="space-y-3">
+                <div class="grid gap-3">
                   <div>
-                    <label class="block font-medium mb-1">
+                    <label class="block text-sm font-medium text-slate-700 mb-1">
                       Título
                     </label>
                     <input
                       [(ngModel)]="task.title"
-                      class="border rounded-lg px-3 py-2 w-full"
+                      class="w-full rounded-lg border border-slate-300 px-3 py-2"
                     />
                   </div>
 
                   <div>
-                    <label class="block font-medium mb-1">
+                    <label class="block text-sm font-medium text-slate-700 mb-1">
                       Descrição
                     </label>
                     <input
                       [(ngModel)]="task.description"
-                      class="border rounded-lg px-3 py-2 w-full"
+                      class="w-full rounded-lg border border-slate-300 px-3 py-2"
                     />
                   </div>
 
-                  <div class="flex gap-2">
+                  <div class="flex flex-wrap gap-2">
                     <button
                       type="button"
                       (click)="saveEdit(task)"
-                      class="bg-green-600 text-white px-3 py-2 rounded-lg hover:bg-green-700"
+                      class="rounded-lg bg-green-600 px-4 py-2 text-white hover:bg-green-700"
                     >
                       Salvar
                     </button>
@@ -140,20 +152,30 @@
                     <button
                       type="button"
                       (click)="cancelEdit()"
-                      class="bg-gray-500 text-white px-3 py-2 rounded-lg hover:bg-gray-600"
+                      class="rounded-lg bg-slate-500 px-4 py-2 text-white hover:bg-slate-600"
                     >
                       Cancelar
                     </button>
                   </div>
                 </div>
               } @else {
-                <div class="flex items-center justify-between gap-4 mb-2">
-                  <h3 class="font-bold text-lg">
-                    {{ task.title }}
-                  </h3>
+                <div class="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <h3 class="text-lg font-bold text-slate-900">
+                      {{ task.title }}
+                    </h3>
+
+                    <p class="text-slate-600 mt-1">
+                      {{ task.description }}
+                    </p>
+
+                    <p class="text-sm text-slate-500 mt-2">
+                      Criada em: {{ formatDate(task.createdAt) }}
+                    </p>
+                  </div>
 
                   <span
-                    class="text-sm px-3 py-1 rounded-full"
+                    class="rounded-full px-3 py-1 text-sm font-medium"
                     [ngClass]="task.status === 'Completed'
                       ? 'bg-green-100 text-green-700'
                       : 'bg-yellow-100 text-yellow-700'"
@@ -162,19 +184,11 @@
                   </span>
                 </div>
 
-                <p class="text-gray-600 mb-2">
-                  {{ task.description }}
-                </p>
-
-                <p class="text-sm text-gray-500 mb-4">
-                  Criada em: {{ formatDate(task.createdAt) }}
-                </p>
-
-                <div class="flex gap-2 flex-wrap">
+                <div class="mt-4 flex flex-wrap gap-2">
                   <button
                     type="button"
                     (click)="toggleTaskStatus(task)"
-                    class="bg-blue-600 text-white px-3 py-2 rounded-lg hover:bg-blue-700"
+                    class="rounded-lg bg-blue-600 px-3 py-2 text-white hover:bg-blue-700"
                   >
                     @if (task.status === 'Completed') {
                       Marcar como pendente
@@ -186,7 +200,7 @@
                   <button
                     type="button"
                     (click)="startEdit(task)"
-                    class="bg-yellow-500 text-white px-3 py-2 rounded-lg hover:bg-yellow-600"
+                    class="rounded-lg bg-amber-500 px-3 py-2 text-white hover:bg-amber-600"
                   >
                     Editar
                   </button>
@@ -194,18 +208,16 @@
                   <button
                     type="button"
                     (click)="deleteTask(task.id)"
-                    class="bg-red-600 text-white px-3 py-2 rounded-lg hover:bg-red-700"
+                    class="rounded-lg bg-red-600 px-3 py-2 text-white hover:bg-red-700"
                   >
                     Excluir
                   </button>
                 </div>
               }
-
-            </div>
+            </article>
           }
         </div>
       }
-    </div>
-
-  </div>
+    </section>
+  </main>
 </div>
