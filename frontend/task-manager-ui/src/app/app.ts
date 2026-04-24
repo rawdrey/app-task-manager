@@ -44,37 +44,56 @@ export class App implements OnInit {
 
   loadTasks(): void {
     this.loading = true;
+    this.message = '';
 
     this.tasksService.getTasks().subscribe({
       next: (response) => {
         this.tasks = response;
         this.loading = false;
       },
-      error: () => {
-        this.message = 'Erro ao carregar tarefas.';
+      error: (error) => {
         this.loading = false;
+
+        if (error.status === 0) {
+          this.message = 'Não foi possível conectar ao servidor. Verifique se a API está rodando.';
+          return;
+        }
+
+        this.message = 'Erro ao carregar tarefas. Tente novamente.';
       }
     });
   }
 
   createTask(): void {
     if (!this.newTask.title.trim()) {
-      this.message = 'Informe o título da tarefa.';
+      this.message = 'O título da tarefa é obrigatório.';
+      return;
+    }
+
+    if (!this.newTask.description.trim()) {
+      this.message = 'A descrição da tarefa é obrigatória.';
       return;
     }
 
     this.tasksService.createTask(this.newTask).subscribe({
       next: () => {
         this.message = 'Tarefa criada com sucesso.';
+
         this.newTask = {
           title: '',
           description: '',
           status: 'Pending'
         };
+
         this.loadTasks();
       },
-      error: () => {
-        this.message = 'Erro ao criar tarefa.';
+      error: (error) => {
+        if (error.status === 0) {
+          this.message = 'Erro de conexão com o servidor. Verifique se a API está em execução.';
+          return;
+        }
+
+        this.message = 'Não foi possível criar a tarefa.';
       }
     });
   }
@@ -89,8 +108,13 @@ export class App implements OnInit {
         this.message = 'Tarefa excluída com sucesso.';
         this.tasks = this.tasks.filter(task => task.id !== id);
       },
-      error: () => {
-        this.message = 'Erro ao excluir tarefa.';
+      error: (error) => {
+        if (error.status === 0) {
+          this.message = 'Erro de conexão com o servidor.';
+          return;
+        }
+
+        this.message = 'Não foi possível excluir a tarefa.';
       }
     });
   }
@@ -106,8 +130,13 @@ export class App implements OnInit {
         task.status = updatedTask.status;
         this.message = 'Status atualizado com sucesso.';
       },
-      error: () => {
-        this.message = 'Erro ao atualizar status.';
+      error: (error) => {
+        if (error.status === 0) {
+          this.message = 'Erro de conexão com o servidor.';
+          return;
+        }
+
+        this.message = 'Erro ao atualizar o status da tarefa.';
       }
     });
   }
@@ -122,13 +151,23 @@ export class App implements OnInit {
       return;
     }
 
+    if (!task.description.trim()) {
+      this.message = 'A descrição da tarefa não pode ficar vazia.';
+      return;
+    }
+
     this.tasksService.updateTask(task).subscribe({
       next: () => {
         this.message = 'Tarefa atualizada com sucesso.';
         this.editingTaskId = null;
       },
-      error: () => {
-        this.message = 'Erro ao atualizar tarefa.';
+      error: (error) => {
+        if (error.status === 0) {
+          this.message = 'Erro de conexão com o servidor.';
+          return;
+        }
+
+        this.message = 'Erro ao atualizar a tarefa.';
       }
     });
   }

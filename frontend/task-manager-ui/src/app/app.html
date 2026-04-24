@@ -1,5 +1,6 @@
 <div class="min-h-screen bg-slate-100 px-4 py-8">
   <main class="max-w-5xl mx-auto">
+
     <header class="mb-8">
       <h1 class="text-3xl font-bold text-slate-900">
         Gerenciador de Tarefas
@@ -10,214 +11,174 @@
     </header>
 
     @if (message) {
-      <div class="mb-6 rounded-lg bg-green-100 px-4 py-3 text-green-800">
-        {{ message }}
+      <div
+        class="mb-6 rounded-lg px-4 py-3 text-sm font-medium"
+        [ngClass]="
+          message.includes('Erro') ||
+          message.includes('Não') ||
+          message.includes('obrigatório') ||
+          message.includes('vazia') ||
+          message.includes('vazio')
+            ? 'bg-red-100 text-red-700'
+            : 'bg-green-100 text-green-700'
+        "
+      >
+        <p>{{ message }}</p>
+
+        @if (
+          message.includes('conectar') ||
+          message.includes('carregar') ||
+          message.includes('servidor')
+        ) {
+          <button
+            type="button"
+            (click)="loadTasks()"
+            class="mt-2 underline"
+          >
+            Tentar novamente
+          </button>
+        }
       </div>
     }
 
+    <!-- CRIAR TAREFA -->
     <section class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-6">
       <h2 class="text-xl font-semibold text-slate-900 mb-4">
         Criar tarefa
       </h2>
 
       <form (ngSubmit)="createTask()" class="grid gap-4">
+
         <div>
-          <label for="title" class="block text-sm font-medium text-slate-700 mb-1">
+          <label class="block text-sm font-medium text-slate-700 mb-1">
             Título
           </label>
           <input
-            id="title"
-            name="title"
-            type="text"
             [(ngModel)]="newTask.title"
-            placeholder="Digite o título da tarefa"
-            class="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            name="title"
+            class="w-full rounded-lg border border-slate-300 px-3 py-2"
           />
         </div>
 
         <div>
-          <label for="description" class="block text-sm font-medium text-slate-700 mb-1">
+          <label class="block text-sm font-medium text-slate-700 mb-1">
             Descrição
           </label>
           <textarea
-            id="description"
-            name="description"
             [(ngModel)]="newTask.description"
-            placeholder="Digite a descrição da tarefa"
-            rows="3"
-            class="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            name="description"
+            class="w-full rounded-lg border border-slate-300 px-3 py-2"
           ></textarea>
         </div>
 
         <div>
-          <label for="status" class="block text-sm font-medium text-slate-700 mb-1">
+          <label class="block text-sm font-medium text-slate-700 mb-1">
             Status inicial
           </label>
           <select
-            id="status"
-            name="status"
             [(ngModel)]="newTask.status"
-            class="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            name="status"
+            class="w-full rounded-lg border border-slate-300 px-3 py-2"
           >
             <option value="Pending">Pendente</option>
             <option value="Completed">Concluída</option>
           </select>
         </div>
 
-        <div>
-          <button
-            type="submit"
-            class="rounded-lg bg-blue-600 px-5 py-2 font-medium text-white hover:bg-blue-700"
-          >
-            Criar tarefa
-          </button>
-        </div>
+        <button class="bg-blue-600 text-white px-4 py-2 rounded-lg">
+          Criar tarefa
+        </button>
+
       </form>
     </section>
 
+    <!-- BUSCA -->
     <section class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-6">
-      <h2 class="text-xl font-semibold text-slate-900 mb-4">
+      <h2 class="text-xl font-semibold mb-4">
         Buscar tarefa
       </h2>
 
-      <label for="search" class="block text-sm font-medium text-slate-700 mb-1">
-        Buscar por título
-      </label>
       <input
-        id="search"
-        name="search"
-        type="text"
         [(ngModel)]="searchTerm"
+        name="search"
         placeholder="Digite parte do título"
-        class="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        class="w-full rounded-lg border border-slate-300 px-3 py-2"
       />
     </section>
 
+    <!-- LISTA -->
     <section class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
-      <div class="flex items-center justify-between gap-4 mb-4">
-        <h2 class="text-xl font-semibold text-slate-900">
-          Lista de tarefas
-        </h2>
 
-        <span class="text-sm text-slate-500">
-          Total: {{ filteredTasks.length }}
-        </span>
-      </div>
+      <h2 class="text-xl font-semibold mb-4">
+        Lista de tarefas
+      </h2>
 
       @if (loading) {
-        <p class="text-slate-600">
-          Carregando tarefas...
-        </p>
+        <p>Carregando...</p>
       }
 
       @if (filteredTasks.length === 0 && !loading) {
-        <p class="rounded-lg bg-slate-50 p-4 text-slate-500">
-          Nenhuma tarefa encontrada.
-        </p>
-      } @else {
-        <div class="grid gap-4">
-          @for (task of filteredTasks; track task.id) {
-            <article class="rounded-xl border border-slate-200 bg-slate-50 p-4">
-              @if (editingTaskId === task.id) {
-                <div class="grid gap-3">
-                  <div>
-                    <label class="block text-sm font-medium text-slate-700 mb-1">
-                      Título
-                    </label>
-                    <input
-                      [(ngModel)]="task.title"
-                      class="w-full rounded-lg border border-slate-300 px-3 py-2"
-                    />
-                  </div>
-
-                  <div>
-                    <label class="block text-sm font-medium text-slate-700 mb-1">
-                      Descrição
-                    </label>
-                    <input
-                      [(ngModel)]="task.description"
-                      class="w-full rounded-lg border border-slate-300 px-3 py-2"
-                    />
-                  </div>
-
-                  <div class="flex flex-wrap gap-2">
-                    <button
-                      type="button"
-                      (click)="saveEdit(task)"
-                      class="rounded-lg bg-green-600 px-4 py-2 text-white hover:bg-green-700"
-                    >
-                      Salvar
-                    </button>
-
-                    <button
-                      type="button"
-                      (click)="cancelEdit()"
-                      class="rounded-lg bg-slate-500 px-4 py-2 text-white hover:bg-slate-600"
-                    >
-                      Cancelar
-                    </button>
-                  </div>
-                </div>
-              } @else {
-                <div class="flex flex-wrap items-start justify-between gap-3">
-                  <div>
-                    <h3 class="text-lg font-bold text-slate-900">
-                      {{ task.title }}
-                    </h3>
-
-                    <p class="text-slate-600 mt-1">
-                      {{ task.description }}
-                    </p>
-
-                    <p class="text-sm text-slate-500 mt-2">
-                      Criada em: {{ formatDate(task.createdAt) }}
-                    </p>
-                  </div>
-
-                  <span
-                    class="rounded-full px-3 py-1 text-sm font-medium"
-                    [ngClass]="task.status === 'Completed'
-                      ? 'bg-green-100 text-green-700'
-                      : 'bg-yellow-100 text-yellow-700'"
-                  >
-                    {{ getStatusLabel(task.status) }}
-                  </span>
-                </div>
-
-                <div class="mt-4 flex flex-wrap gap-2">
-                  <button
-                    type="button"
-                    (click)="toggleTaskStatus(task)"
-                    class="rounded-lg bg-blue-600 px-3 py-2 text-white hover:bg-blue-700"
-                  >
-                    @if (task.status === 'Completed') {
-                      Marcar como pendente
-                    } @else {
-                      Marcar como concluída
-                    }
-                  </button>
-
-                  <button
-                    type="button"
-                    (click)="startEdit(task)"
-                    class="rounded-lg bg-amber-500 px-3 py-2 text-white hover:bg-amber-600"
-                  >
-                    Editar
-                  </button>
-
-                  <button
-                    type="button"
-                    (click)="deleteTask(task.id)"
-                    class="rounded-lg bg-red-600 px-3 py-2 text-white hover:bg-red-700"
-                  >
-                    Excluir
-                  </button>
-                </div>
-              }
-            </article>
-          }
-        </div>
+        <p>Nenhuma tarefa encontrada.</p>
       }
+
+      @for (task of filteredTasks; track task.id) {
+
+        <div class="bg-slate-50 border p-4 rounded mb-3">
+
+          @if (editingTaskId === task.id) {
+
+            <input [(ngModel)]="task.title" class="border p-2 w-full mb-2" />
+            <input [(ngModel)]="task.description" class="border p-2 w-full mb-2" />
+
+            <button (click)="saveEdit(task)" class="bg-green-600 text-white px-3 py-1 rounded mr-2">
+              Salvar
+            </button>
+
+            <button (click)="cancelEdit()" class="bg-gray-500 text-white px-3 py-1 rounded">
+              Cancelar
+            </button>
+
+          } @else {
+
+            <h3 class="font-bold text-lg">{{ task.title }}</h3>
+            <p>{{ task.description }}</p>
+
+            <p class="text-sm text-gray-500">
+              Criada em: {{ formatDate(task.createdAt) }}
+            </p>
+
+            <span
+              class="px-2 py-1 text-sm rounded"
+              [ngClass]="task.status === 'Completed'
+                ? 'bg-green-200'
+                : 'bg-yellow-200'"
+            >
+              {{ getStatusLabel(task.status) }}
+            </span>
+
+            <div class="mt-2 flex gap-2">
+
+              <button (click)="toggleTaskStatus(task)" class="bg-blue-600 text-white px-2 py-1 rounded">
+                Status
+              </button>
+
+              <button (click)="startEdit(task)" class="bg-yellow-500 text-white px-2 py-1 rounded">
+                Editar
+              </button>
+
+              <button (click)="deleteTask(task.id)" class="bg-red-600 text-white px-2 py-1 rounded">
+                Excluir
+              </button>
+
+            </div>
+
+          }
+
+        </div>
+
+      }
+
     </section>
+
   </main>
 </div>
