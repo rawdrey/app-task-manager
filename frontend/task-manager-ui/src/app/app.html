@@ -1,10 +1,23 @@
 <div class="min-h-screen bg-slate-100 p-8">
   <div class="max-w-4xl mx-auto">
+
     <h1 class="text-3xl font-bold text-blue-600 mb-6">
       Gerenciador de Tarefas
     </h1>
 
-    <div class="bg-white rounded-xl shadow-md p-6 mb-6">
+    @if (message) {
+      <div class="bg-green-100 text-green-700 p-3 rounded mb-4">
+        {{ message }}
+      </div>
+    }
+
+    @if (loading) {
+      <p class="mb-4 text-gray-600">
+        Carregando tarefas...
+      </p>
+    }
+
+    <div class="bg-white p-6 rounded-xl shadow-md mb-6">
       <h2 class="text-xl font-semibold mb-4">
         Criar tarefa
       </h2>
@@ -19,8 +32,8 @@
             name="title"
             type="text"
             [(ngModel)]="newTask.title"
-            class="w-full border rounded-lg px-3 py-2"
             placeholder="Digite o título da tarefa"
+            class="border rounded-lg px-3 py-2 w-full"
           />
         </div>
 
@@ -32,8 +45,8 @@
             id="description"
             name="description"
             [(ngModel)]="newTask.description"
-            class="w-full border rounded-lg px-3 py-2"
             placeholder="Digite a descrição da tarefa"
+            class="border rounded-lg px-3 py-2 w-full"
           ></textarea>
         </div>
 
@@ -45,7 +58,7 @@
             id="status"
             name="status"
             [(ngModel)]="newTask.status"
-            class="w-full border rounded-lg px-3 py-2"
+            class="border rounded-lg px-3 py-2 w-full"
           >
             <option value="Pending">Pendente</option>
             <option value="Completed">Concluída</option>
@@ -61,63 +74,138 @@
       </form>
     </div>
 
-    <div class="bg-white rounded-xl shadow-md p-6">
+    <div class="bg-white p-6 rounded-xl shadow-md mb-6">
+      <h2 class="text-xl font-semibold mb-4">
+        Buscar tarefa
+      </h2>
+
+      <label for="search" class="block font-medium mb-1">
+        Buscar por título
+      </label>
+      <input
+        id="search"
+        name="search"
+        type="text"
+        [(ngModel)]="searchTerm"
+        placeholder="Digite parte do título"
+        class="border rounded-lg px-3 py-2 w-full"
+      />
+    </div>
+
+    <div class="bg-white p-6 rounded-xl shadow-md">
       <h2 class="text-xl font-semibold mb-4">
         Lista de tarefas
       </h2>
 
-      @if (tasks.length === 0) {
+      @if (filteredTasks.length === 0) {
         <p class="text-gray-500">
           Nenhuma tarefa encontrada.
         </p>
       } @else {
         <div class="space-y-4">
-          @for (task of tasks; track task.id) {
+          @for (task of filteredTasks; track task.id) {
             <div class="border rounded-lg p-4">
-              <div class="flex items-center justify-between gap-4 mb-2">
-                <h3 class="font-bold text-lg">
-                  {{ task.title }}
-                </h3>
 
-                <span
-                  class="text-sm px-3 py-1 rounded-full"
-                  [ngClass]="task.status === 'Completed'
-                    ? 'bg-green-100 text-green-700'
-                    : 'bg-yellow-100 text-yellow-700'"
-                >
-                  {{ getStatusLabel(task.status) }}
-                </span>
-              </div>
+              @if (editingTaskId === task.id) {
+                <div class="space-y-3">
+                  <div>
+                    <label class="block font-medium mb-1">
+                      Título
+                    </label>
+                    <input
+                      [(ngModel)]="task.title"
+                      class="border rounded-lg px-3 py-2 w-full"
+                    />
+                  </div>
 
-              <p class="text-gray-600 mb-4">
-                {{ task.description }}
-              </p>
+                  <div>
+                    <label class="block font-medium mb-1">
+                      Descrição
+                    </label>
+                    <input
+                      [(ngModel)]="task.description"
+                      class="border rounded-lg px-3 py-2 w-full"
+                    />
+                  </div>
 
-              <div class="flex gap-2">
-                <button
-                  type="button"
-                  (click)="toggleTaskStatus(task)"
-                  class="px-3 py-2 rounded-lg bg-green-600 text-white hover:bg-green-700"
-                >
-                  @if (task.status === 'Completed') {
-                    Marcar como pendente
-                  } @else {
-                    Marcar como concluída
-                  }
-                </button>
+                  <div class="flex gap-2">
+                    <button
+                      type="button"
+                      (click)="saveEdit(task)"
+                      class="bg-green-600 text-white px-3 py-2 rounded-lg hover:bg-green-700"
+                    >
+                      Salvar
+                    </button>
 
-                <button
-                  type="button"
-                  (click)="deleteTask(task.id)"
-                  class="px-3 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700"
-                >
-                  Excluir
-                </button>
-              </div>
+                    <button
+                      type="button"
+                      (click)="cancelEdit()"
+                      class="bg-gray-500 text-white px-3 py-2 rounded-lg hover:bg-gray-600"
+                    >
+                      Cancelar
+                    </button>
+                  </div>
+                </div>
+              } @else {
+                <div class="flex items-center justify-between gap-4 mb-2">
+                  <h3 class="font-bold text-lg">
+                    {{ task.title }}
+                  </h3>
+
+                  <span
+                    class="text-sm px-3 py-1 rounded-full"
+                    [ngClass]="task.status === 'Completed'
+                      ? 'bg-green-100 text-green-700'
+                      : 'bg-yellow-100 text-yellow-700'"
+                  >
+                    {{ getStatusLabel(task.status) }}
+                  </span>
+                </div>
+
+                <p class="text-gray-600 mb-2">
+                  {{ task.description }}
+                </p>
+
+                <p class="text-sm text-gray-500 mb-4">
+                  Criada em: {{ formatDate(task.createdAt) }}
+                </p>
+
+                <div class="flex gap-2 flex-wrap">
+                  <button
+                    type="button"
+                    (click)="toggleTaskStatus(task)"
+                    class="bg-blue-600 text-white px-3 py-2 rounded-lg hover:bg-blue-700"
+                  >
+                    @if (task.status === 'Completed') {
+                      Marcar como pendente
+                    } @else {
+                      Marcar como concluída
+                    }
+                  </button>
+
+                  <button
+                    type="button"
+                    (click)="startEdit(task)"
+                    class="bg-yellow-500 text-white px-3 py-2 rounded-lg hover:bg-yellow-600"
+                  >
+                    Editar
+                  </button>
+
+                  <button
+                    type="button"
+                    (click)="deleteTask(task.id)"
+                    class="bg-red-600 text-white px-3 py-2 rounded-lg hover:bg-red-700"
+                  >
+                    Excluir
+                  </button>
+                </div>
+              }
+
             </div>
           }
         </div>
       }
     </div>
+
   </div>
 </div>

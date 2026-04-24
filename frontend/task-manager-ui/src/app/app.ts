@@ -9,12 +9,16 @@ import { TasksService } from './services/tasks.service';
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './app.html',
-  styleUrl: './app.css'
 })
 export class App implements OnInit {
   private tasksService = inject(TasksService);
 
   tasks: TaskItem[] = [];
+  loading = false;
+  message = '';
+
+  editingTaskId: number | null = null;
+  searchTerm = '';
 
   newTask = {
     title: '',
@@ -26,34 +30,67 @@ export class App implements OnInit {
     this.loadTasks();
   }
 
+  get filteredTasks(): TaskItem[] {
+    const term = this.searchTerm.trim().toLowerCase();
+
+    if (!term) {
+      return this.tasks;
+    }
+
+    return this.tasks.filter(task =>
+      task.title.toLowerCase().includes(term)
+    );
+  }
+
   loadTasks(): void {
+    this.loading = true;
+
     this.tasksService.getTasks().subscribe({
       next: (response) => {
         this.tasks = response;
+        this.loading = false;
       },
-      error: (error) => {
-        console.error('Erro ao carregar tarefas:', error);
+      error: () => {
+        this.message = 'Erro ao carregar tarefas.';
+        this.loading = false;
       }
     });
   }
 
   createTask(): void {
-    if (!this.newTask.title.trim() || !this.newTask.description.trim()) {
+    if (!this.newTask.title.trim()) {
+      this.message = 'Informe o título da tarefa.';
       return;
     }
 
     this.tasksService.createTask(this.newTask).subscribe({
       next: () => {
+        this.message = 'Tarefa criada com sucesso.';
         this.newTask = {
           title: '',
           description: '',
           status: 'Pending'
         };
-
         this.loadTasks();
       },
-      error: (error) => {
-        console.error('Erro ao criar tarefa:', error);
+      error: () => {
+        this.message = 'Erro ao criar tarefa.';
+      }
+    });
+  }
+
+  deleteTask(id: number): void {
+    if (!confirm('Deseja realmente excluir esta tarefa?')) {
+      return;
+    }
+
+    this.tasksService.deleteTask(id).subscribe({
+      next: () => {
+        this.message = 'Tarefa excluída com sucesso.';
+        this.tasks = this.tasks.filter(task => task.id !== id);
+      },
+      error: () => {
+        this.message = 'Erro ao excluir tarefa.';
       }
     });
   }
@@ -66,36 +103,46 @@ export class App implements OnInit {
 
     this.tasksService.updateTask(updatedTask).subscribe({
       next: () => {
-        this.loadTasks();
+        task.status = updatedTask.status;
+        this.message = 'Status atualizado com sucesso.';
       },
-      error: (error) => {
-        console.error('Erro ao atualizar status:', error);
+      error: () => {
+        this.message = 'Erro ao atualizar status.';
       }
     });
   }
 
-  deleteTask(id: number): void {
-    const confirmed = confirm('Deseja realmente excluir esta tarefa?');
+  startEdit(task: TaskItem): void {
+    this.editingTaskId = task.id;
+  }
 
-    if (!confirmed) {
+  saveEdit(task: TaskItem): void {
+    if (!task.title.trim()) {
+      this.message = 'O título da tarefa não pode ficar vazio.';
       return;
     }
 
-    this.tasksService.deleteTask(id).subscribe({
+    this.tasksService.updateTask(task).subscribe({
       next: () => {
-        this.loadTasks();
+        this.message = 'Tarefa atualizada com sucesso.';
+        this.editingTaskId = null;
       },
-      error: (error) => {
-        console.error('Erro ao excluir tarefa:', error);
+      error: () => {
+        this.message = 'Erro ao atualizar tarefa.';
       }
     });
   }
 
-  getStatusLabel(status: string): string {
-    if (status === 'Completed') {
-      return 'Concluída';
-    }
+  cancelEdit(): void {
+    this.editingTaskId = null;
+    this.loadTasks();
+  }
 
-    return 'Pendente';
+  getStatusLabel(status: string): string {
+    return status === 'Completed' ? 'Concluída' : 'Pendente';
+  }
+
+  formatDate(date: string): string {
+    return new Date(date).toLocaleString('pt-BR');
   }
 }
